@@ -13,9 +13,9 @@ public class TestMeteoDAO {
 		List<Rilevamento> list = dao.getAllRilevamenti();
 
 		// STAMPA: localita, giorno, mese, anno, umidita (%)
-		for (Rilevamento r : list) {
-			System.out.format("%-10s %2td/%2$2tm/%2$4tY %3d%%\n", r.getLocalita(), r.getData(), r.getUmidita());
-		}
+		//for (Rilevamento r : list) {
+		//	System.out.format("%-10s %2td/%2$2tm/%2$4tY %3d%%\n", r.getLocalita(), r.getData(), r.getUmidita());
+		//}
 		
 //		System.out.println(dao.getAllRilevamentiLocalitaMese(1, "Genova"));
 //		System.out.println(dao.getAvgRilevamentiLocalitaMese(1, "Genova"));
@@ -26,6 +26,10 @@ public class TestMeteoDAO {
 //		System.out.println(dao.getAllRilevamentiLocalitaMese(5, "Torino"));
 //		System.out.println(dao.getAvgRilevamentiLocalitaMese(5, "Torino"));
 		
+		List<Rilevamento> lista = dao.getAllRilevamentiLocalitaMese(3, "Torino");
+		for(Rilevamento r : lista) {
+			System.out.print("Località: "+r.getLocalita()+"\nUmidità media: "+ r.getUmidita()+"%");
+		}
 
 	}
 
