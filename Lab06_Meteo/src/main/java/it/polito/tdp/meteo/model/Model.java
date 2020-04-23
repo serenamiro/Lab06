@@ -14,8 +14,8 @@ public class Model {
 	
 	MeteoDAO dao;
 	private Map<Integer, List<Rilevamento>> partenza;
-	private int bestCosto = 0;
-	private List<Rilevamento> bestSoluzione = null;
+	private int bestCosto = 152699;
+	private List<Rilevamento> bestSoluzione = new ArrayList<>();
 	
 	private final static int COST = 100;
 	private final static int NUMERO_GIORNI_CITTA_CONSECUTIVI_MIN = 3;
@@ -73,9 +73,9 @@ public class Model {
 		}
 		
 		
-		List<Rilevamento> parziale = new LinkedList<Rilevamento>();
+		List<Rilevamento> parziale = new ArrayList<Rilevamento>();
 		
-		cerca(partenza, parziale, 1);
+		cerca(parziale, 1);
 		
 		String s = "Costo totale: "+bestCosto+"\n";
 		for(Rilevamento r : bestSoluzione) {
@@ -84,44 +84,64 @@ public class Model {
 		return s;
 	}
 
-	private void cerca(Map<Integer, List<Rilevamento>> partenza, List<Rilevamento> parziale, int L) {
+	private void cerca(List<Rilevamento> parziale, int L) {
 		// casi terminali
-		int contatore = contaCitta(parziale);
-		if(contatore == 3 ) {
-			if(contaGiornate(parziale)) {
-				int costo = calcolaCosto(parziale, contatore);
-				if(costo > bestCosto) {
-					bestCosto = costo;
-					bestSoluzione = new ArrayList<>(parziale);
-				}
+		
+		if(!contaGiornate(parziale)) {
+			return; 
+		}
+		
+		if(!contaGiorniMin(parziale)) {
+			return;
+		}
+
+		if(parziale.size() == NUMERO_GIORNI_TOTALI) {
+			int costo = calcolaCosto(parziale);
+			if(costo < bestCosto) {
+				bestCosto = costo;
+				bestSoluzione = new ArrayList<>(parziale);
 			}
 		}
 		
-		// non ho ancora visitato tutte le città
-		if(L == NUMERO_GIORNI_TOTALI) {
+		if(partenza.get(L) == null) {
 			return;
-			// vuol dire che ho finito le giornate a disposizione ma
-			// non ho visitato tutte le città
 		}
+		List<Rilevamento> sottoproblema = partenza.get(L);
 		
-		for(Rilevamento r : partenza.get(L)) {
+		for(Rilevamento r : sottoproblema) {
 			parziale.add(r);
-			//parziale.add(rilevamento(partenza.get(L+1), r.getLocalita()));
-			//parziale.add(rilevamento(partenza.get(L+2), r.getLocalita()));
-			cerca(partenza, parziale, L+1);
-			parziale.remove(r);
-			//parziale.remove(rilevamento(partenza.get(L+1), r.getLocalita()));
-			//parziale.remove(rilevamento(partenza.get(L+2), r.getLocalita()));
+			cerca(parziale, L+1);
+			parziale.remove(parziale.size()-1);
 		}
 	}
 	
-	private Rilevamento rilevamento(List<Rilevamento> lista, String Citta) {
-		for(Rilevamento r : lista) {
-			if (r.getLocalita().equals(Citta)) {
-				return r;
+	private boolean contaGiorniMin(List<Rilevamento> parziale) {
+		String loc = "";
+		int count = 0;
+		boolean x = true;
+		
+		for(int i = 0; i<parziale.size(); i++) {
+			if(x == false) {
+				if(parziale.get(i).getLocalita().equals(loc)) {
+					count++;
+				} else {
+					x = true;
+					if (count < 3) {
+						return false;
+					}
+				}
+			}
+			if(x == true) {
+				loc = parziale.get(i).getLocalita();
+				count = 1;
+				x = false;
 			}
 		}
-		return null;
+		if(parziale.size()==NUMERO_GIORNI_TOTALI && count<3) {
+			return false;
+		}
+		
+		return true;
 	}
 
 	private boolean contaGiornate(List<Rilevamento> parziale) {
@@ -141,20 +161,30 @@ public class Model {
 		return true;
 	}
 
-	private int calcolaCosto(List<Rilevamento> parziale, int contatore) {
-		int costo = COST*(contatore-1);
+	private int calcolaCosto(List<Rilevamento> parziale) {
+		int costo = COST*(contaCitta(parziale));
 		for(Rilevamento r : parziale) {
 			costo += r.getUmidita();
 		}
 		return costo;
 	}
-
+	
+	
 	private int contaCitta(List<Rilevamento> parziale) {
-		Set<String> contatore = new HashSet<String>();
-		for(Rilevamento r : parziale) {
-			contatore.add(r.getLocalita());
+		String loc = "";
+		int count = 0;
+		boolean x = true;
+		
+		loc = parziale.get(0).getLocalita();
+		
+		for(int i=1; i<parziale.size(); i++) {
+			if(!parziale.get(i).getLocalita().equals(loc)){
+				count++;
+			}
+			loc = parziale.get(i).getLocalita();
 		}
-		return contatore.size();
+		
+		return count;
 	}
 	
 	
